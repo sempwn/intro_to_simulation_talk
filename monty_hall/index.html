@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monty Hall Problem</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  #gameCanvas {
+    border: 2px solid black;
+    background-color: #f3f3f3;
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let doors = [
+  { selected: false },
+  { selected: false },
+  { selected: false }
+];
+let prizeDoor = Math.floor(Math.random() * 3);
+let playerChoice = null;
+let revealedDoor = null;
+let gamePhase = "choose"; // "choose", "reveal", "result"
+let resultText = "";
+let wins = 0;
+let plays = 0;
+let win_rate = 0;
+
+// Resizes the canvas and elements
+function resizeCanvas() {
+  canvas.width = window.innerWidth * 0.8;
+  canvas.height = window.innerHeight * 0.8;
+  setDoorDimensions();
+  drawDoors();
+}
+
+function setDoorDimensions() {
+  const doorWidth = canvas.width * 0.15;
+  const doorHeight = canvas.height * 0.6;
+  const doorSpacing = (canvas.width - 3 * doorWidth) / 4;
+
+  doors.forEach((door, index) => {
+    door.x = doorSpacing + index * (doorWidth + doorSpacing);
+    door.y = canvas.height * 0.2;
+    door.width = doorWidth;
+    door.height = doorHeight;
+  });
+}
+
+function drawDoors() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = `${canvas.width * 0.03}px Arial`;
+
+  
+  doors.forEach((door, index) => {
+    ctx.fillStyle = door.selected ? "#FFD700" : "#A9A9A9";
+    ctx.fillRect(door.x, door.y, door.width, door.height);
+    
+    ctx.fillStyle = "#000";
+    ctx.fillText("Door " + (index + 1), door.x + door.width * 0.2, door.y + door.height * 0.15);
+
+    if (gamePhase === "result") {
+      if (index === prizeDoor) {
+        ctx.fillText("🏆", door.x + door.width * 0.35, door.y + door.height * 0.6);
+      } else {
+        ctx.fillText("🐐", door.x + door.width * 0.35, door.y + door.height * 0.6);
+      }
+    } else if (gamePhase === "reveal" && index === revealedDoor) {
+      ctx.fillText("🐐", door.x + door.width * 0.35, door.y + door.height * 0.6);
+    }
+  });
+  
+  // Display game phase text
+  ctx.fillStyle = "#000";
+  if (gamePhase === "choose") {
+    ctx.fillText("Choose a door!", canvas.width * 0.35, canvas.height * 0.15);
+  } else if (gamePhase === "reveal") {
+    ctx.fillText("Click to switch or stay with your choice", canvas.width * 0.2, canvas.height * 0.15);
+  } else if (gamePhase === "result") {
+    ctx.fillText(resultText, canvas.width * 0.3, canvas.height * 0.15);
+  }
+
+  // Display the win counter
+  ctx.fillText(`Win rate: ${wins} / ${plays} = ${win_rate}%`, canvas.width * 0.05, canvas.height * 0.05);
+}
+
+canvas.addEventListener("click", function(event) {
+  const clickX = event.offsetX;
+  const clickY = event.offsetY;
+
+  // Check if the counter was clicked
+  if (clickX > canvas.width * 0.05 && clickY < canvas.height * 0.1) {
+    wins = 0;
+    plays = 0;
+    win_rate = 0;
+    drawDoors();
+    return;
+  }
+
+  if (gamePhase === "choose") {
+    doors.forEach((door, index) => {
+      if (
+        clickX > door.x &&
+        clickX < door.x + door.width &&
+        clickY > door.y &&
+        clickY < door.y + door.height
+      ) {
+        playerChoice = index;
+        door.selected = true;
+        revealDoor();
+      }
+    });
+  } else if (gamePhase === "reveal") {
+    doors.forEach((door, index) => {
+      if (
+        clickX > door.x &&
+        clickX < door.x + door.width &&
+        clickY > door.y &&
+        clickY < door.y + door.height &&
+        index !== revealedDoor
+      ) {
+        // Check if player is switching or staying
+        if (index === playerChoice) {
+          // Staying with the original choice
+          doors[playerChoice].selected = true;
+        } else {
+          // Switching to the other door
+          doors[playerChoice].selected = false;
+          playerChoice = index;
+          doors[playerChoice].selected = true;
+        }
+        showResult();
+      }
+    });
+  } else if (gamePhase === "result") {
+    resetGame();
+  }
+  
+  drawDoors();
+});
+
+function revealDoor() {
+  gamePhase = "reveal";
+  
+  do {
+    revealedDoor = Math.floor(Math.random() * 3);
+  } while (revealedDoor === prizeDoor || revealedDoor === playerChoice);
+  
+  drawDoors();
+}
+
+function showResult() {
+  gamePhase = "result";
+  plays++;
+  
+  if (playerChoice === prizeDoor) {
+    resultText = "Congratulations, you won the prize!";
+    wins++;
+  } else {
+    resultText = "Sorry, you got a goat!";
+  }
+  
+  win_rate = (plays >0) ? Math.round(100*wins/plays) : 0;
+  drawDoors();
+}
+
+function resetGame() {
+  prizeDoor = Math.floor(Math.random() * 3);
+  playerChoice = null;
+  revealedDoor = null;
+  gamePhase = "choose";
+  resultText = "";
+  
+  doors.forEach(door => door.selected = false);
+  drawDoors();
+}
+
+// Initialize and handle resizing
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+</script>
+</body>
+</html>

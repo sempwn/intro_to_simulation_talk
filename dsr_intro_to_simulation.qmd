@@ -1,0 +1,302 @@
+---
+preload-iframes: true
+format:
+  revealjs:
+    preload-iframes: true
+    margin: 0.05
+    chalkboard: true
+    css: slides.css
+    logo: img/BCCDC_Logo_RGB_300px.png
+    theme: simple
+    transition: slide
+    background-transition: fade
+    view-distance: 9
+    auto-stretch: true
+    scrollable: true
+---
+
+```{r}
+#| include: false
+library(dplyr)
+library(ggplot2)
+library(MASS)
+library(latex2exp)
+```
+
+#  {background-iframe="rock_paper_scissors/rock_paper_scissors.html"}
+
+::: {style="background-color: #ffffffbb; border-radius: 10px; padding: 5px;"}
+::: r-fit-text
+::: center-text
+Introduction to simulation
+:::
+:::
+
+::: center-text
+Mike Irvine
+:::
+
+::: center-text
+8th November, 2024
+:::
+:::
+
+
+## Introduction {.smaller}
+
+::: {.incremental}
+
+- Simulation can be used for a variety of tasks in epidemiology including
+  - statistical tests
+  - sample size calculations
+  - understanding the strengths and weaknesses of a study design or method
+  - exploration of public health campaigns and interventions (what if? scenarios)
+- The basics of simulation are remarkably simple (you may have done it without realizing)
+  - Law of large numbers
+  - Monte Carlo integration
+  - Random number generation
+
+:::
+
+## Law of large numbers
+
+- Take a collection of random numbers $X_1, /ldots, X_n$ and calculate their empirical mean
+- $\bar{X}_n = (X_1 + \ldots X_n)/n$
+- Law of large numbers says that this will converge to the expected value
+- $\bar{X}_n \to \mathbb{E}[X_i]$ as $n \to \infty$
+- If I knew the expectation then so what? Lots of more complicated processes we may not know!
+- $(f(X_1) + \ldots f(X_n))/n \to \mathbb{E}[f(X_i)]$ as $n \to \infty$
+- See [Monte Carlo method...](https://en.wikipedia.org/wiki/Monte_Carlo_method)
+
+## Law of large numbers example
+
+- What is the expected value of a single dice throw? 
+- $X_i$ result of a single dice throw: 1,2,3,4,5,6
+- The expected value is just the long-running mean
+
+## Law of large numbers example
+
+```{r}
+#| echo: true 
+x <- sample(
+  c(1,2,3,4,5,6),
+  size=1000,
+  replace=TRUE)
+
+ggplot() +
+  geom_line(aes(x=1:1000,y=cummean(x))) + 
+  geom_hline(yintercept = 3.5, linetype='dashed') +
+  labs(x='n',y=TeX('$\\bar{X}$')) +
+  theme_classic() +
+  theme(text=element_text(size=21))
+```
+
+
+## How do we generate random numbers?
+
+:::{.incremental}
+
+- Is the sequence 1,6,1,5,1 random?
+- What about 8,8,10,4,8
+- Random numbers are hard... see [Kolmogorov Complexity](https://en.wikipedia.org/wiki/Kolmogorov_complexity)
+- Psudo-random number generation uses algorithms to generate something with correct statistical properties
+- Can be seeded or generated to reduce predictability (e.g. CPU temperature, lightning strikes) 
+:::
+
+## How do we use random numbers to draw samples from a probability distribution?
+
+::: {.incremental}
+- Inverse transform sampling
+  - Generate a random number $u$ from the interval $[0,1]$ i.e. $u \sim U(0,1)$.
+  -  Find the inverse of the target CDF $F_x^{-1}$
+  - Random variable $x = F^{-1}_X(u)$ has the desired distribution
+- Other approaches involve combined or direct methods e.g. Poisson, binomial,...
+
+:::
+
+
+## Binomial example
+
+<iframe src="binomial/index.html" style="width: 100%; aspect-ratio: 1.0;"></iframe>
+
+## Monty Hall Problem
+
+![](img/monty_hall_image.png){.center}
+
+## Monty Hall Problem
+
+<iframe src="monty_hall/index.html" style="width: 80%; aspect-ratio: 0.8;"></iframe>
+
+
+## Monty Hall Problem
+
+```{r}
+#| echo: true
+# Set parameters
+set.seed(42)  # For reproducibility
+n_trials <- 10000  # Number of simulations
+
+# Initialize counters
+switch_wins <- 0
+stay_wins <- 0
+
+# Simulation loop
+for (i in 1:n_trials) {
+  
+  # Randomly place the prize behind one of the three doors
+  prize_door <- sample(1:3, 1)
+  
+  # Player's initial choice (random)
+  initial_choice <- sample(1:3, 1)
+  
+  # Host reveals a door that is not the prize and not the initial choice
+  available_doors <- setdiff(1:3, c(prize_door, initial_choice))
+  revealed_door <- sample(available_doors, 1)
+  
+  # Determine the other remaining door after reveal
+  remaining_door <- setdiff(1:3, c(initial_choice, revealed_door))
+  
+  # Determine outcome if the player switches or stays
+  if (initial_choice == prize_door) {
+    # Player wins if they stay
+    stay_wins <- stay_wins + 1
+  } else {
+    # Player wins if they switch
+    switch_wins <- switch_wins + 1
+  }
+}
+
+# Calculate probabilities
+stay_prob <- stay_wins / n_trials
+switch_prob <- switch_wins / n_trials
+
+# Display results
+cat("After", n_trials, "trials:\n",
+"Probability of winning if staying with initial choice:", round(stay_prob, 3), 
+"\n","Probability of winning if switching doors:", round(switch_prob, 3), 
+"\n")
+
+```
+
+
+## Simulate t-test
+
+::: {.incremental}
+- t-test based on $t=\frac{\bar{X}_1 - \bar{X}_2}{s_p\sqrt{2/n}}$
+- We know that this follows a t-distribution and can use this to generate a p-value
+- But what if we didn't know the distribution...?
+- simulate! 
+:::
+
+## Simulate t-test
+
+```{r}
+#| echo: true
+set.seed(42)
+
+x1 <- rnorm(5,mean=2)
+x2 <- rnorm(5,mean=3)
+
+tt <- t.test(x1,x2)
+
+reps <- 1000
+p_val_rep <- 0
+for(i in 1:reps){
+  x1_rep <- rnorm(5)
+  x2_rep <- rnorm(5)
+  t_stat_rep <- t.test(x1_rep,x2_rep)$statistic
+  p_val_rep <- p_val_rep + (abs(t_stat_rep) > abs(tt$statistic))
+}
+
+p_val_rep <- p_val_rep/reps
+
+print(paste('p-val:',tt$p.value,'sim p-val:',p_val_rep))
+```
+
+## Permutation test
+
+<iframe src="permutation_test/index.html" style="width: 80%; aspect-ratio: 0.8;"></iframe>
+
+## Testing a study design
+
+```{r}
+#| echo: true
+# Assuming Y is the outcome variable, and data is your dataset
+get_significant_variables <- function(data){
+  model_full <- lm(y ~ ., data = data)
+  model_null <- lm(y ~ 1, data = data)
+  
+  # Perform forward selection
+  forward_model <- step(model_null, 
+  scope = formula(model_full), direction = "forward",
+  trace = 0)
+  
+  
+  # Count the number of significant predictors (p < 0.05)
+  significant_predictors <- summary(forward_model)$coefficients[, 4] < 0.05
+  num_significant_predictors <-   sum(significant_predictors) - 1  # subtract 1 to exclude   the intercept
+
+  # Output the number of significant predictors
+  return(num_significant_predictors)
+}
+```
+
+
+## Testing a study design - generate data
+
+```{r}
+#| echo: true  
+generate_dataset <- function(n, m, k, noise_sd = 1) {
+  # n: number of observations
+  # m: total number of predictor variables x1 to xm
+  # k: number of predictor variables that influence y
+  # noise_sd: standard deviation of the noise added to y
+
+  # Generate predictor variables x1 to xm as normally distributed
+  predictors <- as.data.frame(matrix(rnorm(n * m), nrow = n, ncol = m))
+  colnames(predictors) <- paste0("x", 1:m)
+  
+  # Randomly select k predictors to be used in the linear combination for y
+  selected_predictors <- sample(1:m, k)
+  
+  # Generate random coefficients for the selected predictors
+  coefficients <- rnorm(k)
+  
+  # Calculate y as a linear combination of the selected predictors plus noise
+  y <- as.matrix(predictors[, selected_predictors]) %*% coefficients + rnorm(n, sd = noise_sd)
+  
+  # Combine y with predictor variables into a final dataset
+  data <- cbind(y = y, predictors)
+  
+  return(as.data.frame(data))
+}
+
+generate_dataset(n = 100, m = 10, k = 3) |> head()
+```
+
+## Testing a study design - simulate
+
+```{r}
+#| echo: true
+N <- 100
+k <- 3
+correct <- 0
+for(n in 1:N){
+data <- generate_dataset(n = 100, m = 10, k = k)
+correct <- correct + (get_significant_variables(data)==k)
+}
+print(correct/N)
+```
+
+## Conclusion
+
+::: {.incremental}
+- Simulation helps us to think about problems and ultimately what our data 
+generating process is
+- Important to set the seed to control results
+- Testing out new methodology or revisiting old study designs
+- Simulation also used for large-scale complex dynamics e.g. spread of influenza.
+Although simulation itself is more complicated, the principles remain the same
+:::
+
+#  {background-iframe="rock_paper_scissors/rock_paper_scissors.html"}
