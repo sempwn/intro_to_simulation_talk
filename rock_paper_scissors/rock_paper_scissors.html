@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rock Paper Scissors Simulation</title>
   <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
     canvas {
       background-color: #f0f0f0;
       display: block;
@@ -34,6 +42,12 @@
     images.rock.src = 'rock.jpg';
     images.paper.src = 'paper.png';
     images.scissors.src = 'scissors.jpg';
+    
+    // Resizes the canvas and elements
+    function resizeCanvas() {
+      canvas.width = window.innerWidth * 0.8;
+      canvas.height = window.innerHeight * 0.8;
+    }
 
     class Particle {
       constructor(x, y, type) {
@@ -146,6 +160,9 @@
         }
       }
     }
+    // Initialize and handle resizing
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
 
     // Initialize particles
     for (let i = 0; i < totalParticles; i++) {
