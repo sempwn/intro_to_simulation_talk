@@ -433,12 +433,12 @@
 <section id="law-of-large-numbers" class="slide level2">
 <h2>Law of large numbers</h2>
 <ul>
-<li>Take a collection of random numbers <span class="math inline">\(X_1, /ldots, X_n\)</span> and calculate their empirical mean</li>
-<li><span class="math inline">\(\bar{X}_n = (X_1 + \ldots X_n)/n\)</span></li>
+<li>Take a collection of random numbers <span class="math inline">\(X_1, \ldots, X_n\)</span> and calculate their empirical mean</li>
+<li><span class="math inline">\(\bar{X}_n = (X_1 + \ldots + X_n)/n\)</span></li>
 <li>Law of large numbers says that this will converge to the expected value</li>
 <li><span class="math inline">\(\bar{X}_n \to \mathbb{E}[X_i]\)</span> as <span class="math inline">\(n \to \infty\)</span></li>
 <li>If I knew the expectation then so what? Lots of more complicated processes we may not know!</li>
-<li><span class="math inline">\((f(X_1) + \ldots f(X_n))/n \to \mathbb{E}[f(X_i)]\)</span> as <span class="math inline">\(n \to \infty\)</span></li>
+<li><span class="math inline">\((f(X_1) + \ldots + f(X_n))/n \to \mathbb{E}[f(X_i)]\)</span> as <span class="math inline">\(n \to \infty\)</span></li>
 <li>See <a href="https://en.wikipedia.org/wiki/Monte_Carlo_method">Monte Carlo method…</a></li>
 </ul>
 </section>
@@ -529,7 +529,7 @@
 <span id="cb2-17"><a href="#cb2-17"></a>  </span>
 <span id="cb2-18"><a href="#cb2-18"></a>  <span class="co"># Host reveals a door that is not the prize and not the initial choice</span></span>
 <span id="cb2-19"><a href="#cb2-19"></a>  available_doors <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="fu">c</span>(prize_door, initial_choice))</span>
-<span id="cb2-20"><a href="#cb2-20"></a>  revealed_door <span class="ot">&lt;-</span> <span class="fu">sample</span>(available_doors, <span class="dv">1</span>)</span>
+<span id="cb2-20"><a href="#cb2-20"></a>  revealed_door <span class="ot">&lt;-</span> available_doors[<span class="dv">1</span>]</span>
 <span id="cb2-21"><a href="#cb2-21"></a>  </span>
 <span id="cb2-22"><a href="#cb2-22"></a>  <span class="co"># Determine the other remaining door after reveal</span></span>
 <span id="cb2-23"><a href="#cb2-23"></a>  remaining_door <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="fu">c</span>(initial_choice, revealed_door))</span>
@@ -555,8 +555,8 @@
 <span id="cb2-43"><a href="#cb2-43"></a><span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>After 10000 trials:
- Probability of winning if staying with initial choice: 0.338 
- Probability of winning if switching doors: 0.662 </code></pre>
+ Probability of winning if staying with initial choice: 0.339 
+ Probability of winning if switching doors: 0.661 </code></pre>
 </div>
 </div>
 </section>

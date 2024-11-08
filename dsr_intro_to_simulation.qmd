@@ -60,12 +60,12 @@ Mike Irvine
 
 ## Law of large numbers
 
-- Take a collection of random numbers $X_1, /ldots, X_n$ and calculate their empirical mean
-- $\bar{X}_n = (X_1 + \ldots X_n)/n$
+- Take a collection of random numbers $X_1, \ldots, X_n$ and calculate their empirical mean
+- $\bar{X}_n = (X_1 + \ldots + X_n)/n$
 - Law of large numbers says that this will converge to the expected value
 - $\bar{X}_n \to \mathbb{E}[X_i]$ as $n \to \infty$
 - If I knew the expectation then so what? Lots of more complicated processes we may not know!
-- $(f(X_1) + \ldots f(X_n))/n \to \mathbb{E}[f(X_i)]$ as $n \to \infty$
+- $(f(X_1) + \ldots + f(X_n))/n \to \mathbb{E}[f(X_i)]$ as $n \to \infty$
 - See [Monte Carlo method...](https://en.wikipedia.org/wiki/Monte_Carlo_method)
 
 ## Law of large numbers example
@@ -151,7 +151,7 @@ for (i in 1:n_trials) {
   
   # Host reveals a door that is not the prize and not the initial choice
   available_doors <- setdiff(1:3, c(prize_door, initial_choice))
-  revealed_door <- sample(available_doors, 1)
+  revealed_door <- available_doors[1]
   
   # Determine the other remaining door after reveal
   remaining_door <- setdiff(1:3, c(initial_choice, revealed_door))
